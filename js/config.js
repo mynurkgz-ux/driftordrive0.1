@@ -1,16 +1,16 @@
-// Конфигурация Firebase проекта "thedrive-3c531"
+// Конфигурация Firebase проекта "thedrive01"
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCqnHiQwOqUoj2ZoQgM2XL4jLpeJPbbIwM",
-  authDomain: "thedrive-3c531.firebaseapp.com",
-  projectId: "thedrive-3c531",
-  storageBucket: "thedrive-3c531.firebasestorage.app",
-  messagingSenderId: "237346781036",
-  appId: "1:237346781036:web:ab0ea1b670d643aa0f6549",
-  measurementId: "G-H44XFTC571"
+  apiKey: "AIzaSyCO5Re5J3QnHtXMZbuyDIYr6v0zxTlT5QU",
+  authDomain: "thedrive01.firebaseapp.com",
+  projectId: "thedrive01",
+  storageBucket: "thedrive01.firebasestorage.app",
+  messagingSenderId: "652442860264",
+  appId: "1:652442860264:web:ece9bb6e2887b5b610275d",
+  measurementId: "G-Q1E2QZV0NE"
   // Необязательно: если создашь Realtime Database, раскомментируй строку ниже —
   // мультиплеер станет плавнее (обновления ~12 раз/сек вместо 5) и не будет тратить квоту Firestore.
-  // , databaseURL: "https://thedrive-3c531-default-rtdb.firebaseio.com"
+  // , databaseURL: "https://thedrive01-default-rtdb.firebaseio.com"
 };
 
 // Ссылка на оригинальный сайт (показывается в настройках)
-window.SITE_URL = "https://thedrive-3c531.web.app";
+window.SITE_URL = "https://thedrive01.web.app";

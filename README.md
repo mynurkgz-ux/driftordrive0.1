@@ -31,7 +31,7 @@
 
 ## Настройка Firebase (один раз)
 
-В [консоли Firebase](https://console.firebase.google.com/) для проекта `thedrive-3c531`:
+В [консоли Firebase](https://console.firebase.google.com/) для проекта `thedrive01`:
 
 1. **Authentication → Sign-in method** → включи **Email/Password**.
 2. **Firestore Database → Create database** (любой регион). Без этого не работают облачные сохранения и мультиплеер.
@@ -45,18 +45,18 @@ Firestore на бесплатном тарифе даёт ~20 000 записей
 
 1. **Realtime Database → Create database**.
 2. **Rules** → вставь содержимое `database.rules.json` → **Publish**.
-3. Скопируй адрес базы (например `https://thedrive-3c531-default-rtdb.firebaseio.com`) и раскомментируй строку `databaseURL` в `js/config.js`.
+3. Скопируй адрес базы (например `https://thedrive01-default-rtdb.firebaseio.com`) и раскомментируй строку `databaseURL` в `js/config.js`.
 
 ## Публикация сайта (чтобы друзья могли зайти по ссылке)
 
 ```
 npm install -g firebase-tools
 firebase login
-firebase use thedrive-3c531
+firebase use thedrive01
 firebase deploy
 ```
 
-Сайт откроется по адресу `https://thedrive-3c531.web.app`. Ссылки-приглашения в мультиплеер будут вести туда.
+Сайт откроется по адресу `https://thedrive01.web.app`. Ссылки-приглашения в мультиплеер будут вести туда.
 Ссылка вида `http://localhost:...` работает только на твоём компьютере.
 
 ## Файлы
@@ -76,4 +76,4 @@ firebase deploy
 | `js/net.js` | Аккаунты, облачные сохранения, мультиплеер |
 | `js/save.js` | Локальное сохранение прогресса |
 | `js/ui.js` | Меню, гараж, выбор карт, лобби, настройки |
-# driftordrive0.0
+# driftordrive0.1
