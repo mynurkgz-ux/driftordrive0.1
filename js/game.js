@@ -624,7 +624,7 @@ const GAME = (() => {
     }
     // ники над машинами
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.font = '600 12px Rubik, sans-serif'; ctx.textAlign = 'center';
+    ctx.font = '600 12px Manrope, sans-serif'; ctx.textAlign = 'center';
     const tag = c => { if (!c.ready && c.isRemote) return; const [sx, sy] = toScreen(c.x, c.y); if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) return; const t = c.nick || ''; const w = ctx.measureText(t).width + 12; ctx.fillStyle = 'rgba(0,0,0,.5)'; U.rr(ctx, sx - w / 2, sy - cam.s * 2.6 - 16, w, 18, 6); ctx.fill(); ctx.fillStyle = c.isPlayer ? '#ffd27a' : '#fff'; ctx.fillText(t, sx, sy - cam.s * 2.6 - 3); };
     for (const c of cars) if (!c.isPlayer) tag(c);
     for (const id in remotes) tag(remotes[id]);
@@ -637,7 +637,7 @@ const GAME = (() => {
     const s = mmc.width; mmx.clearRect(0, 0, s, s); mmx.drawImage(mini.c, 0, 0);
     const dot = (c, col, r) => { mmx.fillStyle = col; mmx.beginPath(); mmx.arc(mini.ox + c.x * mini.sc, mini.oy + c.y * mini.sc, r, 0, 7); mmx.fill(); };
     for (const c of cars) if (!c.isPlayer) dot(c, '#ff4d5e', 4);
-    for (const id in remotes) if (remotes[id].ready) dot(remotes[id], '#25c4ff', 4.5);
+    for (const id in remotes) if (remotes[id].ready) dot(remotes[id], '#3d8bff', 4.5);
     mmx.strokeStyle = '#000'; mmx.lineWidth = 2; dot(player, '#ffc83d', 5.5);
   }
 

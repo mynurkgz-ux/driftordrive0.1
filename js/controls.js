@@ -11,7 +11,7 @@ const INPUT = (() => {
     wheel: { wheel: { x: 15, y: 70, s: 1 }, gas: { x: 90, y: 64, s: 1 }, brake: { x: 78, y: 76, s: 1 }, hb: { x: 90, y: 88, s: 0.85 } },
   };
   const LABEL = { gas: 'ГАЗ', brake: 'ТОРМОЗ', hb: 'РУЧНИК', left: '◀', right: '▶' };
-  const WHEEL_SVG = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="9"/><circle cx="50" cy="50" r="12" fill="rgba(255,255,255,.35)"/><path d="M8 52 L38 52 M62 52 L92 52 M50 62 L50 92" stroke="rgba(255,255,255,.55)" stroke-width="8"/><rect x="46" y="4" width="8" height="10" fill="#ff5a2b"/></svg>';
+  const WHEEL_SVG = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="9"/><circle cx="50" cy="50" r="12" fill="rgba(255,255,255,.35)"/><path d="M8 52 L38 52 M62 52 L92 52 M50 62 L50 92" stroke="rgba(255,255,255,.55)" stroke-width="8"/><rect x="46" y="4" width="8" height="10" fill="#c6ff1a"/></svg>';
 
   I.init = function () {
     window.addEventListener('keydown', e => {

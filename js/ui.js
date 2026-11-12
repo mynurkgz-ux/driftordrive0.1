@@ -9,7 +9,8 @@ const UI = (() => {
   // ---------- базовое ----------
   UIo.init = function () {
     document.body.classList.toggle('mobile', U.isMobile);
-    U.$$('[data-go]').forEach(b => b.addEventListener('click', () => { AUDIO.init(); AUDIO.click(); const g = b.dataset.go; if (g === 'drift' || g === 'race') UIo.openMode(g); else if (g === 'settings') UIo.openSettings(); else if (g === 'exit') confirmExit(); }));
+    U.$$('[data-go]').forEach(b => b.addEventListener('click', () => { AUDIO.init(); AUDIO.click(); const g = b.dataset.go; if (g === 'drift' || g === 'race') UIo.openMode(g); else if (g === 'garage') UIo.openGarage('main'); }));
+    U.$('#btnSettings').onclick = () => { AUDIO.init(); AUDIO.click(); if (UIo.cur === 'settings') UIo.show(UIo.setReturn || 'main'); else UIo.openSettings(); };
     U.$('#brandBtn').onclick = () => { if (!GAME.running) UIo.show('main'); };
     U.$('#btnRegister').onclick = () => authModal('register');
     U.$('#btnLogin').onclick = () => authModal('login');
@@ -27,7 +28,7 @@ const UI = (() => {
     // гараж
     U.$$('.gbtn').forEach(b => b.onclick = () => openPanel(b.dataset.panel));
     U.$('#drawerClose').onclick = closePanel;
-    U.$('#btnGarageBack').onclick = () => { closePanel(); UIo.show('mode'); };
+    U.$('#btnGarageBack').onclick = () => { closePanel(); UIo.show(UIo.garageFrom || 'mode'); };
     initGarageDrag();
     // карты, лобби, настройки
     U.$('#btnMapsBack').onclick = () => UIo.show('mode');
@@ -39,7 +40,7 @@ const UI = (() => {
     window.addEventListener('resize', () => { sizeCanvas(U.$('#bgCanvas')); sizeCanvas(U.$('#modeCanvas')); sizeCanvas(U.$('#garageCanvas')); });
     sizeCanvas(U.$('#bgCanvas'));
     bgLoop();
-    window.addEventListener('car3d-ready', () => { CARR.clearCache(); if (UIo.cur === 'mode') modeAnimStart(); if (UIo.cur === 'garage') garageStart(); });
+    window.addEventListener('car3d-ready', () => { CARR.clearCache(); if (UIo.cur === 'mode') modeAnimStart(); if (UIo.cur === 'garage') garageStart(); if (UIo.cur === 'main') mainStart(); });
     UIo.refreshTop();
     UIo.show('main');
   };
@@ -51,9 +52,11 @@ const UI = (() => {
     U.$$('.screen').forEach(s => s.classList.toggle('on', s.id === 'scr-' + id));
     document.body.classList.toggle('ingame', id === 'game');
     document.body.classList.toggle('race', (id === 'game' ? GAME.mapInfo().mode : UIo.mode) === 'race' && id !== 'main' && id !== 'settings');
-    U.$('#bgCanvas').style.display = (id === 'main' || id === 'maps' || id === 'settings' || id === 'lobby') ? 'block' : 'none';
+    U.$('#bgCanvas').style.display = ((id === 'main' && !has3d()) || id === 'maps' || id === 'settings' || id === 'lobby') ? 'block' : 'none';
+    U.$('#btnSettings').classList.toggle('on', id === 'settings');
     if (id === 'mode') { sizeCanvas(U.$('#modeCanvas')); modeAnimStart(); } else modeAnimStop();
     if (id === 'garage') { sizeCanvas(U.$('#garageCanvas')); garageStart(); } else garageStop();
+    if (id === 'main') mainStart();
     if (id !== 'game') exitFullscreenIfGame();
   };
   UIo.refreshTop = function () {
@@ -81,13 +84,14 @@ const UI = (() => {
     const c = UIo.modal('<h3>' + title + '</h3><p class="sub">' + text + '</p><div class="row"><button class="btn ghost" id="cbNo">Отмена</button><button class="btn ' + (danger ? '' : 'ok') + '" id="cbYes">' + okText + '</button></div>');
     U.$('#cbNo', c).onclick = UIo.closeModal; U.$('#cbYes', c).onclick = () => { UIo.closeModal(); onOk(); };
   }
-  function confirmExit() {
-    confirmBox('Выйти из игры?', 'Прогресс сохранён. До встречи на трассе!', 'Выйти', () => {
-      NET.syncNow();
-      document.body.innerHTML = '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-family:Russo One,sans-serif;font-size:26px;color:#8b94a5;background:#0a0c11">До встречи!</div>';
-      try { window.close(); } catch (e) { }
-      setTimeout(() => { location.replace('about:blank'); }, 400);
-    }, true);
+  // ---------- главный экран: текущая машина на подиуме + карточка ----------
+  function mainStart() {
+    const id = SAVE.data.current, def = DATA.CAR[id], st = carStats(def, SAVE.cfg(id) || SAVE.newCarCfg(id)), S = SAVE.data.stats || {};
+    U.$('#mainCar').innerHTML =
+      '<div class="cc-top"><span class="cc-class">' + CLASS[def.tier] + '</span><div><div class="cc-brand">' + U.esc(def.brand) + '</div><div class="cc-name">' + U.esc(def.model) + '</div></div></div>' +
+      '<div class="cc-specs"><div><b>' + Math.round(st.hp) + '</b><span>л.с.</span></div><div><b>' + Math.round(st.top) + '</b><span>км/ч</span></div><div><b>' + st.acc.toFixed(1) + '</b><span>0–100, с</span></div><div><b>' + def.drive + '</b><span>привод</span></div></div>' +
+      '<div class="cc-stats"><span>Гонок <b>' + (S.races || 0) + '</b></span><span>Побед <b>' + (S.wins || 0) + '</b></span><span>Рекорд дрифта <b>' + U.num(S.bestDrift || 0) + '</b></span></div>';
+    if (has3d()) CAR3D.start('garage', U.$('#scr-main'), { look: () => SAVE.curLook(), zoom: innerWidth > 760 ? 1.45 : 1.25, shift: () => innerWidth < 1100 ? innerWidth * 0.13 : 0 });
   }
 
   // ---------- аккаунт ----------
@@ -135,7 +139,7 @@ const UI = (() => {
         const W = c.width, H = c.height;
         const gr = g.createRadialGradient(W * 0.75, H * 0.4, 10, W * 0.6, H * 0.5, Math.max(W, H) * 0.8);
         const race = document.body.classList.contains('race');
-        gr.addColorStop(0, race ? '#0f2a3a' : '#2a1410'); gr.addColorStop(0.5, '#0e1118'); gr.addColorStop(1, '#07080c');
+        gr.addColorStop(0, race ? '#0b1a33' : '#18210a'); gr.addColorStop(0.5, '#0e1118'); gr.addColorStop(1, '#07080c');
         g.fillStyle = gr; g.fillRect(0, 0, W, H);
         g.strokeStyle = 'rgba(255,255,255,.035)'; g.lineWidth = 1;
         const step = 60 * (c._d || 1), off = (bgT * 40) % step;
@@ -143,7 +147,7 @@ const UI = (() => {
         for (const s of streaks) {
           s.x -= s.s * dt * 0.6; if (s.x + s.l < 0) { s.x = 1; s.y = Math.random(); }
           const lg = g.createLinearGradient(s.x * W, 0, (s.x + s.l) * W, 0);
-          lg.addColorStop(0, race ? 'rgba(37,196,255,.35)' : 'rgba(255,90,43,.35)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+          lg.addColorStop(0, race ? 'rgba(61,139,255,.35)' : 'rgba(198,255,26,.35)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
           g.strokeStyle = lg; g.lineWidth = 2; g.beginPath(); g.moveTo(s.x * W, s.y * H); g.lineTo((s.x + s.l) * W, s.y * H); g.stroke();
         }
       }
@@ -187,10 +191,10 @@ const UI = (() => {
     mRaf = requestAnimationFrame(f);
   }
   function nickLabel(g, x, y) {
-    const t = NET.displayNick(); g.font = '700 16px Rubik, sans-serif'; g.textAlign = 'center';
+    const t = NET.displayNick(); g.font = '700 16px Manrope, sans-serif'; g.textAlign = 'center';
     const w = g.measureText(t).width + 26;
     g.fillStyle = 'rgba(0,0,0,.6)'; U.rr(g, x - w / 2, y - 28, w, 30, 15); g.fill();
-    g.strokeStyle = UIo.mode === 'race' ? 'rgba(37,196,255,.7)' : 'rgba(255,90,43,.7)'; g.lineWidth = 1.5; g.stroke();
+    g.strokeStyle = UIo.mode === 'race' ? 'rgba(61,139,255,.7)' : 'rgba(198,255,26,.7)'; g.lineWidth = 1.5; g.stroke();
     g.fillStyle = '#fff'; g.fillText(t, x, y - 8);
   }
   function driftScene(g, W, H, dt) {
@@ -239,7 +243,7 @@ const UI = (() => {
     // линии скорости
     if (MA.lines.length < 46) MA.lines.push({ x: W + Math.random() * W, y: Math.random() * H * 0.95, l: 60 + Math.random() * 220, s: 1200 + Math.random() * 1800 });
     g.lineWidth = 2;
-    for (const l of MA.lines) { l.x -= l.s * dt; if (l.x + l.l < 0) { l.x = W + Math.random() * 200; l.y = Math.random() * H * 0.95; } const lg = g.createLinearGradient(l.x, 0, l.x + l.l, 0); lg.addColorStop(0, 'rgba(37,196,255,0)'); lg.addColorStop(0.5, 'rgba(160,230,255,.5)'); lg.addColorStop(1, 'rgba(255,255,255,0)'); g.strokeStyle = lg; g.beginPath(); g.moveTo(l.x, l.y); g.lineTo(l.x + l.l, l.y); g.stroke(); }
+    for (const l of MA.lines) { l.x -= l.s * dt; if (l.x + l.l < 0) { l.x = W + Math.random() * 200; l.y = Math.random() * H * 0.95; } const lg = g.createLinearGradient(l.x, 0, l.x + l.l, 0); lg.addColorStop(0, 'rgba(61,139,255,0)'); lg.addColorStop(0.5, 'rgba(160,230,255,.5)'); lg.addColorStop(1, 'rgba(255,255,255,0)'); g.strokeStyle = lg; g.beginPath(); g.moveTo(l.x, l.y); g.lineTo(l.x + l.l, l.y); g.stroke(); }
     const look = SAVE.curLook(), geo = CARR.geom(look);
     const sc = Math.min(W * (wide ? 0.42 : 0.8), 640) / geo.L;
     const cx = wide ? W * 0.6 : W * 0.5, cy = roadY + Math.sin(performance.now() / 70) * 1.2;
@@ -258,7 +262,7 @@ const UI = (() => {
   // ---------- гараж ----------
   let gRaf = 0, gRot = -Math.PI / 2, gDrag = null, curPanel = null;
   const gPrev = { car: null, kit: {}, paint: {} };
-  UIo.openGarage = function () { gPrev.car = null; gPrev.kit = {}; gPrev.paint = {}; UIo.show('garage'); garageInfo(); };
+  UIo.openGarage = function (from) { UIo.garageFrom = from === 'main' ? 'main' : 'mode'; gPrev.car = null; gPrev.kit = {}; gPrev.paint = {}; UIo.show('garage'); garageInfo(); };
   function gLook() {
     const id = gPrev.car || SAVE.data.current; const cfg = SAVE.cfg(id) || SAVE.newCarCfg(id);
     return { car: id, kit: Object.assign({}, cfg.kit, gPrev.kit), paint: Object.assign({}, cfg.paint, gPrev.paint) };
@@ -296,7 +300,7 @@ const UI = (() => {
       const pr = geo.L * sc * 0.62;
       const pg = g.createRadialGradient(cx, cy, pr * 0.2, cx, cy, pr);
       pg.addColorStop(0, '#2f3440'); pg.addColorStop(1, '#1a1d24'); g.fillStyle = pg; g.beginPath(); g.arc(cx, cy, pr, 0, 7); g.fill();
-      g.strokeStyle = race ? 'rgba(37,196,255,.55)' : 'rgba(255,90,43,.55)'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, pr, 0, 7); g.stroke();
+      g.strokeStyle = race ? 'rgba(61,139,255,.55)' : 'rgba(198,255,26,.55)'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, pr, 0, 7); g.stroke();
       g.strokeStyle = 'rgba(255,255,255,.06)'; g.lineWidth = 1; for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2 + gRot; g.beginPath(); g.moveTo(cx + Math.cos(a) * pr * 0.85, cy + Math.sin(a) * pr * 0.85); g.lineTo(cx + Math.cos(a) * pr * 0.97, cy + Math.sin(a) * pr * 0.97); g.stroke(); }
       g.save(); g.translate(cx, cy); g.scale(sc, sc); g.rotate(gRot);
       CARR.drawTop(g, look, { steer: Math.sin(now / 900) * 0.25 });
